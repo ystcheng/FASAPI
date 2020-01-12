@@ -1,100 +1,64 @@
 from bs4 import BeautifulSoup
 from typing import *
+from Object.course_obj import CourseObj
+from pprint import pprint
+
 import requests
 
 
-class ScrapingFAS:
-    _url: str
-    _course_code: str
-    _course_title: str
-    _description: str
-    _prerequisite: str
-    _exclusion: str
-    _scraped_result: List[Dict]
+class CourseScraping:
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._url = 'https://fas.calendar.utoronto.ca/search-courses?page=0'
-        self._course_code = 'views-field-title'
-        self._course_title = 'views-field-field-course-title'
-        self._description = 'views-field-body'
-        self._prerequisite = 'views-field-field-prerequisite1'
-        self._exclusion = 'views-field-field-exclusion1'
-        self._scraped_result = []
 
-    def scraping(self) -> List[Dict]:
+    def scraping(self) -> List[CourseObj]:
         raw_html = requests.get(self._url)
         soup = BeautifulSoup(raw_html.text, 'html.parser')
 
-        data = soup.find_all('tr')[2:]
+        data = soup.find('table', attrs={'summary': 'FAS Course Search Results'})
 
-        final_data = []
+        response = self._remove_empty_element(
+            self._remove_empty_element(data.contents)[1].contents
+        )
 
-        for item in data:
-            final_data.append(self._inner_scraping(item.contents))
+        code = 0
+        title = 1
+        description = 2
+        prerequisite = 3
+        exclusion = 4
 
-        self._scraped_result = list(filter(None, final_data))
+        result = []
 
-        return self._scraped_result
-
-    def _inner_scraping(self, inner_data: List) -> Dict:
-
-        def return_target(inner_item: List) -> str:
-            for item in inner_item:
-                if item.name == 'a':
-                    return item.text
-            return ''
-
-        def reconstruct(stuff: dict, key: str, value: str, replace: str) -> None:
-            if value == '':
-                stuff[key] = replace.strip()
-            else:
-                stuff[key] = value.strip()
-
-        result = {}
-        for item in inner_data:
-            try:
-                if self._course_code in item.attrs['class']:
-
-                    reconstruct(result, 'Course Code',
-                                return_target(item.contents), item.text)
-
-                elif self._course_title in item.attrs['class']:
-                    reconstruct(result, 'Course Title',
-                                return_target(item.contents), item.text)
-                elif self._description in item.attrs['class']:
-                    reconstruct(result, 'Description',
-                                return_target(item.contents), item.text)
-                elif self._prerequisite in item.attrs['class']:
-                    reconstruct(result, 'Prerequisite',
-                                return_target(item.contents), item.text)
-                elif self._exclusion in item.attrs['class']:
-                    reconstruct(result, 'Exclusion',
-                                return_target(item.contents), item.text)
-            except:
-                pass
+        for res in response:
+            info = list(filter(None, res.text.split('\n')))
+            result.append(
+                [self._get_info(code, info),
+                self._get_info(title, info),
+                self._get_info(description, info),
+                self._get_info(prerequisite, info),
+                self._get_info(exclusion, info)]
+            )
 
         return result
 
-    def get_recent_scraped(self) -> List[Dict]:
-        return self._scraped_result
+    def _get_info(self, index: int, info_list: List) -> str:
+        try:
+            return info_list[index].strip()
+        except IndexError:
+            return ''
 
-    def __str__(self):
-        if len(self._scraped_result) == 0:
-            print('')
 
-        result = ''
 
-        for item in self._scraped_result:
-            inner_str = ''
-            for key in item:
-                inner_str += key + ': ' + item[key] + '\n'
+    def _filter_useless_space(self, input_str: str) -> bool:
+        try:
+            input_str.strip()
+            return False
+        except TypeError:
+            return True
 
-            result += inner_str + '\n'
-
-        print(result.strip())
-
+    def _remove_empty_element(self, input_list) -> List:
+        return list(filter(self._filter_useless_space, input_list))
 
 if __name__ == '__main__':
-    test = ScrapingFAS()
-    test.scraping()
-    print(test.__str__())
+    test = CourseScraping()
+    pprint(test.scraping())
