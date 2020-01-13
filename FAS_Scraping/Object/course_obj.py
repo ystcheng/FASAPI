@@ -18,7 +18,7 @@ class CourseObj:
         self._prerequisite = prerequisite
         self._exclusion = exclusion
 
-    def get_info(self) -> json:
+    def get_info(self) -> Dict:
         result = {
             "code": self._code,
             "title": self._title,
@@ -27,4 +27,4 @@ class CourseObj:
             "exclusion": self._exclusion
         }
 
-        return json.dumps(result)
+        return result

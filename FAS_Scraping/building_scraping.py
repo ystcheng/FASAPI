@@ -1,8 +1,9 @@
 from bs4 import BeautifulSoup
 from typing import *
 from Object.building_obj import BuildingObj
-import requests
+from mongoapi import MongoAPI
 
+import requests
 
 class ScrapingBuilding:
 
@@ -21,8 +22,9 @@ class ScrapingBuilding:
 
         for item in test:
             result = self._loop_to_content(item)
-
-            parsed_data.append(self._get_content_specific(result))
+            data = self._get_content_specific(result)
+            parsed_data.append(data)
+            print(MongoAPI().store('Building', data.get_info()))
 
         return parsed_data
 
@@ -64,5 +66,5 @@ if __name__ == '__main__':
     test = ScrapingBuilding()
     result = test.scraping()
 
-    for item in result:
-        print(item.get_info())
+    # for item in result:
+    #     print(item.get_info())

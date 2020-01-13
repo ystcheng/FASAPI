@@ -17,7 +17,7 @@ class BuildingObj:
         self. _address = address
         self._postal_code = postal_code
 
-    def get_info(self) -> json:
+    def get_info(self) -> Dict:
         result = {
             "id": self._id,
             "code": self._code_name,
@@ -26,4 +26,4 @@ class BuildingObj:
             "postal": self._postal_code
         }
 
-        return json.dumps(result)
+        return result
