@@ -1,5 +1,3 @@
-import FAS_Scraping as fas
-
 
 class Main:
     pass
