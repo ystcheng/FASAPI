@@ -1,5 +1,5 @@
 beautifulsoup4==4.8.2
 chardet==3.0.4
 idna==2.8
-pyspark==2.4.4
+pyspark==3.2.2
 requests==2.22.0
